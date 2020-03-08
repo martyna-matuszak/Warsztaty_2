@@ -10,6 +10,8 @@ public class SolutionDao {
 
     private static final String CREATE_SOLUTION_QUERY =
             "INSERT INTO solutions(created, updated, description, exercise_id, user_id) VALUES (?, ?, ?, ?, ?)";
+    private static final String CREATE_SOLUTION_SIMPLIFIED_QUERY =
+            "INSERT INTO solutions(created, exercise_id, user_id) VALUES (NOW(), ?, ?)";
     private static final String READ_SOLUTION_QUERY =
             "SELECT * FROM solutions where id = ?";
     private static final String UPDATE_SOLUTION_QUERY =
@@ -32,6 +34,24 @@ public class SolutionDao {
             statement.setString(3, solution.getDescription());
             statement.setInt(4, solution.getExerciseId());
             statement.setInt(5, solution.getUserId());
+            statement.executeUpdate();
+            ResultSet resultSet = statement.getGeneratedKeys();
+            if (resultSet.next()) {
+                solution.setId(resultSet.getInt(1));
+            }
+            return solution;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public Solution createSimplified(Solution solution) {
+        try (Connection conn = DBUtil.connect()) {
+            PreparedStatement statement =
+                    conn.prepareStatement(CREATE_SOLUTION_SIMPLIFIED_QUERY, Statement.RETURN_GENERATED_KEYS);
+            statement.setInt(1, solution.getExerciseId());
+            statement.setInt(2, solution.getUserId());
             statement.executeUpdate();
             ResultSet resultSet = statement.getGeneratedKeys();
             if (resultSet.next()) {
