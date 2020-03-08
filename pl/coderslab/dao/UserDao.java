@@ -20,6 +20,8 @@ public class UserDao {
             "DELETE FROM users WHERE id = ?";
     private static final String FIND_ALL_USERS_QUERY =
             "SELECT * FROM users";
+    private static final String FIND_ALL_USERS_BY_GROUP_ID_QUERY =
+            "SELECT * FROM users WHERE user_group_id = ?";
 
     public User create(User user) {
         try (Connection conn = DBUtil.connect()) {
@@ -91,23 +93,41 @@ public class UserDao {
         return tmp;
     }
 
+    private User[] createUsersArray(ResultSet resultSet) throws SQLException {
+        User[] users = new User[0];
+        while (resultSet.next()) {
+            User user = new User();
+            user.setId(resultSet.getInt("id"));
+            user.setUsername(resultSet.getString("username"));
+            user.setEmail(resultSet.getString("email"));
+            user.setPassword(resultSet.getString("password"));
+            user.setUserGroupId(resultSet.getInt("user_group_id"));
+            users = addToArray(user, users);
+        }
+        return users;
+    }
+
     public User[] findAll() {
         try (Connection conn = DBUtil.connect()) {
-            User[] users = new User[0];
             PreparedStatement statement = conn.prepareStatement(FIND_ALL_USERS_QUERY);
             ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                User user = new User();
-                user.setId(resultSet.getInt("id"));
-                user.setUsername(resultSet.getString("username"));
-                user.setEmail(resultSet.getString("email"));
-                user.setPassword(resultSet.getString("password"));
-                user.setUserGroupId(resultSet.getInt("user_group_id"));
-                users = addToArray(user, users);
-            }
-            return users;
+            return createUsersArray(resultSet);
         } catch (SQLException e) {
-            e.printStackTrace(); return null;
-        }}
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public User[] findAllByGroupId (int groupId){
+        try (Connection conn = DBUtil.connect()) {
+            PreparedStatement statement = conn.prepareStatement(FIND_ALL_USERS_BY_GROUP_ID_QUERY);
+            statement.setInt(1, groupId);
+            ResultSet resultSet = statement.executeQuery();
+            return createUsersArray(resultSet);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
 }
