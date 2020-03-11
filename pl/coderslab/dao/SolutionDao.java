@@ -46,23 +46,6 @@ public class SolutionDao {
         }
     }
 
-    public Solution createSimplified(Solution solution) {
-        try (Connection conn = DBUtil.connect()) {
-            PreparedStatement statement =
-                    conn.prepareStatement(CREATE_SOLUTION_SIMPLIFIED_QUERY, Statement.RETURN_GENERATED_KEYS);
-            statement.setInt(1, solution.getExerciseId());
-            statement.setInt(2, solution.getUserId());
-            statement.executeUpdate();
-            ResultSet resultSet = statement.getGeneratedKeys();
-            if (resultSet.next()) {
-                solution.setId(resultSet.getInt(1));
-            }
-            return solution;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
 
     public Solution read(int solutionId) {
         try (Connection conn = DBUtil.connect()) {
