@@ -1,7 +1,6 @@
 package pl.coderslab.dao;
 
 import pl.coderslab.models.Solution;
-import pl.coderslab.models.User;
 
 import java.sql.*;
 import java.util.Arrays;
@@ -45,7 +44,6 @@ public class SolutionDao {
             return null;
         }
     }
-
 
     public Solution read(int solutionId) {
         try (Connection conn = DBUtil.connect()) {
@@ -99,7 +97,6 @@ public class SolutionDao {
         return tmp;
     }
 
-    //postanowiłam sobie tutaj wyciągnąć ten kod, żeby uprościć następne 3 metody
     private Solution[] createSolutionsArray(ResultSet resultSet) throws SQLException {
         Solution[] solutions = new Solution[0];
         while (resultSet.next()) {

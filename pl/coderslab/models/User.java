@@ -1,9 +1,6 @@
 package pl.coderslab.models;
 
 import org.mindrot.jbcrypt.BCrypt;
-import pl.coderslab.dao.DBUtil;
-
-import java.sql.*;
 
 public class User {
     private int id;

@@ -6,9 +6,6 @@ import java.sql.*;
 import java.util.Arrays;
 
 public class UserDao {
-    /* Haszowanie hasła:
-    http://www.mindrot.org/projects/jBCrypt/
-     */
 
     private static final String CREATE_USER_QUERY =
             "INSERT INTO users(username, email, password, user_group_id) VALUES (?, ?, ?, ?)";

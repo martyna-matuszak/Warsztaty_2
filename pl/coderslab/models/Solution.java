@@ -5,10 +5,6 @@ public class Solution{
     private int id;
     private String created;
     private String updated;
-    /*
-    Z braku lepszego typu - string
-    Datetime format: YYYY-MM-DD HH:MM:SS
-     */
     private String description;
     private int exerciseId;
     private int userId;
