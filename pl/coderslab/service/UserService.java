@@ -1,9 +1,15 @@
 package pl.coderslab.service;
 
+import org.mindrot.jbcrypt.BCrypt;
+import pl.coderslab.dao.ExerciseDao;
+import pl.coderslab.dao.SolutionDao;
 import pl.coderslab.dao.UserDao;
+import pl.coderslab.models.Exercise;
+import pl.coderslab.models.Solution;
 import pl.coderslab.models.User;
 import pl.coderslab.programs.AdminConsole;
 
+import java.time.LocalDateTime;
 import java.util.Scanner;
 
 
@@ -19,14 +25,33 @@ public class UserService {
         Scanner scanner = new Scanner(System.in);
 
         while (!scanner.hasNext("quit")){
-            String command = scanner.nextLine();
-            switch (command) {
+            switch (scanner.nextLine()) {
                 case "add" -> addUser(scanner, dao);
                 case "edit" -> editUser(scanner, dao);
                 case "delete" -> deleteUser(scanner, dao);
                 default -> System.out.println(optionsCommand);
             }
         } System.out.println(AdminConsole.optionsCommand);
+    }
+
+    public static boolean userAuthentification(Scanner scanner, int userId){
+        UserDao dao = new UserDao();
+        User user = dao.read(userId);
+        String password = user.getPassword();
+
+        boolean correctPassword = false;
+
+        System.out.println("Podaj hasło");
+        for(int i=0; i<3; i++){
+            if(BCrypt.checkpw(scanner.nextLine(), password)){
+                System.out.println("Hasło jest poprawne");
+                correctPassword = true;
+                break;
+            }else {
+                System.out.println("Hasło jest niepoprawne. Pozostało prób: " + (2-i));
+            }
+        }
+        return correctPassword;
     }
 
     static void addUser(Scanner scanner, UserDao dao){
@@ -108,7 +133,7 @@ public class UserService {
         return userExists;
     }
 
-    static int getProperUser(Scanner scanner){
+    public static int getProperUser(Scanner scanner){
         int id;
         boolean correctUser = false;
         do{

@@ -1,6 +1,8 @@
 package pl.coderslab.service;
 
+import pl.coderslab.dao.ExerciseDao;
 import pl.coderslab.dao.SolutionDao;
+import pl.coderslab.models.Exercise;
 import pl.coderslab.models.Solution;
 import pl.coderslab.programs.AdminConsole;
 
@@ -43,11 +45,15 @@ public class SolutionService {
         return dao.findAll();
     }
 
-    static void printAllSolutions(){
-        Solution[] allSolutions = getAllSolutions();
-        for (Solution solution: allSolutions) {
+    static void printSolutions(Solution[] solutions){
+        for (Solution solution: solutions) {
             System.out.println(solution.toString());
         }
+    }
+
+    static void printAllSolutions(){
+        Solution[] allSolutions = getAllSolutions();
+        printSolutions(allSolutions);
     }
 
     static void addSolution(Scanner scanner, SolutionDao dao){
@@ -67,23 +73,59 @@ public class SolutionService {
         System.out.println("Zadanie zostało przypisane do użytkownika");
     }
 
-    static void printUsersSolutions(int id){
+    public static void addSolutionForUser(Scanner scanner, int userId){
+        SolutionDao solutionDao = new SolutionDao();
+        ExerciseDao exerciseDao = new ExerciseDao();
+        Solution[] usersUnsolvedExercises = SolutionService.getAllUnsolvedForUser(userId);
+
+        if (usersUnsolvedExercises.length == 0){
+            System.out.println("Użytkownik nie ma zadań do rozwiązania");
+        } else {
+            SolutionService.printSolutions(usersUnsolvedExercises);
+            System.out.println("Podaj numer id zadania, do którego chcesz dodać rozwiązanie:");
+            int solutionId = SolutionService.getProperSolutionFromRange(scanner, usersUnsolvedExercises);
+            Solution solution = solutionDao.read(solutionId);
+            Exercise exercise = exerciseDao.read(solution.getExerciseId());
+            System.out.println(exercise.toString());
+            solution.setUpdated(LocalDateTime.now().toString());
+            System.out.println("Podaj opis rozwiązania:");
+            solution.setDescription(scanner.nextLine());
+            solutionDao.update(solution);
+            System.out.println("Dodano rozwiązanie");
+        }
+
+    }
+
+    public static void viewSolutionsForUser(int userId){
+        SolutionService.printSolutions(SolutionService.getUsersSolutions(userId));
+    }
+
+    static Solution[] getUsersSolutions (int id){
         Solution[] allSolutions = getAllSolutions();
-        List<Solution> usersSolutions = new ArrayList<>();
+        List<Solution> usersSolutionsList = new ArrayList<>();
         for (Solution solution: allSolutions){
             if(id == solution.getUserId()){
-                usersSolutions.add(solution);
+                usersSolutionsList.add(solution);
             }
         }
-        for (Solution solution: usersSolutions){
-            System.out.println(solution.toString());
+        return changeSolutionListIntoTab(usersSolutionsList);
+    }
+
+    static Solution[] changeSolutionListIntoTab(List<Solution> solutionList){
+        Solution[] solutionTab = new Solution[solutionList.size()];
+        int index = 0;
+        for(Solution solutionListItem : solutionList){
+            solutionTab[index] = solutionListItem;
+            index++;
         }
+        return solutionTab;
     }
 
     static void viewUsersSolutions(Scanner scanner){
         UserService.printAllUsers();
         System.out.println("Podaj id użytkownika, którego zadania chcesz zobaczyć:");
-        printUsersSolutions(UserService.getProperUser(scanner));
+//        printUsersSolutions(UserService.getProperUser(scanner));
+        printSolutions(getUsersSolutions(UserService.getProperUser(scanner)));
     }
 
     static void editSolution(Scanner scanner, SolutionDao dao){
@@ -127,10 +169,9 @@ public class SolutionService {
         }
     }
 
-    static boolean checkIfSelectedSolutionExists(int id){
-        Solution[] allSolutions = getAllSolutions();
+    static boolean checkIfSelectedSolutionIsInRange(int id, Solution[] rangeOfSolutions){
         boolean solutionExists = false;
-        for(Solution solution: allSolutions){
+        for(Solution solution: rangeOfSolutions){
             if (id == solution.getId()) {
                 solutionExists = true;
                 break;
@@ -139,20 +180,35 @@ public class SolutionService {
         return solutionExists;
     }
 
-    static int getProperSolution(Scanner scanner){
+    static int getProperSolutionFromRange(Scanner scanner, Solution[] rangeOfSolutions){
         int id;
         boolean correctSolution = false;
         do{
             id = scanner.nextInt();
             scanner.nextLine();
-            if(checkIfSelectedSolutionExists(id)){
+            if(checkIfSelectedSolutionIsInRange(id, rangeOfSolutions)){
                 correctSolution = true;
             } else {
                 System.out.println("Rozwiązanie dla wybranego id nie istnieje.");
-                printAllSolutions();
+                printSolutions(rangeOfSolutions);
             }
         } while (!correctSolution);
         return id;
+    }
+
+    static int getProperSolution(Scanner scanner){
+        return getProperSolutionFromRange(scanner, getAllSolutions());
+    }
+
+    static Solution[] getAllUnsolvedForUser (int userId){
+        Solution[] usersSolutions = getUsersSolutions(userId);
+        List<Solution> allUnsolvedForUser = new ArrayList<>();
+        for(Solution solution: usersSolutions){
+            if(solution.getUpdated() == null){
+                allUnsolvedForUser.add(solution);
+            }
+        }
+        return changeSolutionListIntoTab(allUnsolvedForUser);
     }
 
 }
