@@ -1,4 +1,4 @@
-# Workshops 2 - JDBC
+# Workshops - JDBC
 
 In order for the project to work properly user must:
 
